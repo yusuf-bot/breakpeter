@@ -1,0 +1,14 @@
+# Core dependencies
+moviepy==1.0.3
+requests==2.31.0
+python-dotenv==1.0.0
+beautifulsoup4==4.12.2
+playwright==1.40.0
+
+# Additional dependencies for video processing
+pillow==10.0.1
+imageio==2.31.1
+imageio-ffmpeg==0.4.9
+
+# Optional: for better text rendering
+fonttools==4.42.1
