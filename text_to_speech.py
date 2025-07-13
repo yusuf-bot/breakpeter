@@ -3,15 +3,17 @@ from playwright.sync_api import sync_playwright
 import os
 
 def tts(char,text,filename):
+    """Generate TTS audio using FakeYou and save to filename."""
+    print(f"🎤 Generating TTS for {char}...")
     if char == "peter griffin":
         voice = "Peter Griffin (Modern, New)"
     else:
         voice = "Stewie Griffin (Classic)"
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(headless=False)
         context = browser.new_context()
         page = context.new_page()
-
+        print("🌐 Opening FakeYou...")
         # Go to FakeYou TTS page
         page.goto("https://fakeyou.com/tts")
         page.wait_for_timeout(5000)
@@ -26,12 +28,27 @@ def tts(char,text,filename):
         # Navigate to TTS
         page.click('a[href="/tts"] >> svg[data-icon="arrow-right-long"]')
         page.fill("input[placeholder*='Search from 3500+ voices']", char)
-        page.wait_for_timeout(5000)
+        page.wait_for_timeout(50000)
 
         # Select Peter Griffin voice
-        modal = page.locator('div.fy-modal-body-wide')
+        # Wait for the modal to appear
+        modal = page.locator("div.fy-modal-body-wide")
         modal.wait_for()
-        modal.locator(f'h6:has-text("{voice}")').nth(0).click()
+
+        # Locate all h6 elements (voice titles)
+        voice_elements = modal.locator("h6")
+
+        # Loop to find and click matching voice
+        for i in range(voice_elements.count()):
+            voice_text = voice_elements.nth(i).inner_text().strip()
+            print(f"Checking voice {i+1}: {voice_text}, expected: {voice}")
+            if voice_text.lower() == voice.lower():
+                voice_elements.nth(i).click()
+                print(f"✅ Voice '{voice_text}' selected")
+                break
+        else:
+            print(f"❌ Voice '{voice}' not found")
+
         print("✅ Voice selected")
 
         # Fill the text input
@@ -81,4 +98,5 @@ def tts(char,text,filename):
     return filename
 
 if __name__ == "__main__":
+    print("🎤 Generating audio for Peter Griffin...")
     tts('stewie griffin', 'Hello, world!', 'stewie_audio.wav')
