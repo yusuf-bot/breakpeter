@@ -7,11 +7,8 @@ from PIL import Image
 import numpy as np
 
 # Handle PIL version compatibility for ANTIALIAS
-try:
-    RESAMPLING_FILTER = Image.LANCZOS
-except AttributeError:
-    RESAMPLING_FILTER = Image.ANTIALIAS
-
+if not hasattr(Image, 'ANTIALIAS'):
+    Image.ANTIALIAS = Image.LANCZOS
 class VideoUtils:
     """Utility class for video processing operations"""
     
@@ -93,7 +90,7 @@ class VideoUtils:
             # Create smooth slide animation
             def position_func(t):
                 progress = min(t / slide_speed, 1)  # Complete slide in slide_speed seconds
-                # Smooth easing function
+            # Smooth easing function
                 progress = progress * progress * (3 - 2 * progress)  # Smoothstep
                 x = start_x + (end_x - start_x) * progress
                 return (x, y_pos)
@@ -105,7 +102,7 @@ class VideoUtils:
         except Exception as e:
             print(f"❌ Error creating animation for {character}: {e}")
             return None
-    
+     
     @staticmethod
     def create_text_image_with_stroke(text, fontsize=54, color='white', stroke_color='black', stroke_width=6, video_size=(1080, 1920)):
         """Create text image with stroke using PIL - Fixed for newer Pillow versions"""
@@ -218,7 +215,7 @@ class VideoUtils:
             clips.append(txt_clip)
 
         return CompositeVideoClip(clips, size=video_size)
-    
+  
     @staticmethod
     def create_background_segment(bg_video_path, start_time, duration):
         """Create background video segment with loop if needed"""
