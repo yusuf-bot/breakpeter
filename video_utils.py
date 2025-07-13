@@ -117,29 +117,7 @@ class VideoUtils:
         draw = ImageDraw.Draw(img)
         
         # Try to load font, fall back to default if not available
-        try:
-            # Try different font paths for Windows
-            font_paths = [
-                "C:/Windows/Fonts/arial.ttf",
-                "C:/Windows/Fonts/Arial.ttf",
-                "C:/Windows/Fonts/arialbd.ttf",  # Arial Bold
-                "arial.ttf",
-                "Arial.ttf"
-            ]
-            
-            font = None
-            for font_path in font_paths:
-                try:
-                    font = ImageFont.truetype(font_path, fontsize)
-                    break
-                except:
-                    continue
-            
-            if font is None:
-                font = ImageFont.load_default()
-        except:
-            font = ImageFont.load_default()
-        
+        font = ImageFont.truetype("test.ttf", fontsize) 
         # Get text dimensions
         bbox = draw.textbbox((0, 0), text, font=font)
         text_width = bbox[2] - bbox[0]
@@ -201,7 +179,7 @@ class VideoUtils:
           # MoviePy wants the mask as float 0‑1
             if alpha.dtype != np.float32:
                 alpha = alpha.astype("float32") / 255.0
-
+            rgb= (rgb.astype("float32")*alpha[...,None]).astype("uint8")
             # ---------- turn them into MoviePy clips ----------
             txt_clip = (
                 ImageClip(rgb, ismask=False)

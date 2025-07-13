@@ -13,6 +13,8 @@ def tts(char,text,filename):
         browser = p.chromium.launch(headless=False)
         context = browser.new_context()
         page = context.new_page()
+        page.set_default_timeout(120000)
+
         print("🌐 Opening FakeYou...")
         # Go to FakeYou TTS page
         page.goto("https://fakeyou.com/tts")
@@ -41,21 +43,14 @@ def tts(char,text,filename):
         # Loop to find and click matching voice
         for i in range(voice_elements.count()):
             voice_text = voice_elements.nth(i).inner_text().strip()
-            print(f"Checking voice {i+1}: {voice_text}, expected: {voice}")
             if voice_text.lower() == voice.lower():
                 voice_elements.nth(i).click()
-                print(f"✅ Voice '{voice_text}' selected")
                 break
-        else:
-            print(f"❌ Voice '{voice}' not found")
 
-        print("✅ Voice selected")
 
         # Fill the text input
         page.fill("textarea[placeholder*='to say...']", text)
-        print("✅ Text filled")
         page.click("button:has-text('Speak')")
-        print("⏳ Generating voice...")
         page.wait_for_timeout(30000)
 
         # Open More Details for matching voice generation
