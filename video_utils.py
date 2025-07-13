@@ -71,7 +71,7 @@ class VideoUtils:
             char_img = ImageClip(image_path).set_duration(duration)
             
             # Calculate size (character should be about 1/4 of video height)
-            target_height = video_size[1] // 4
+            target_height = video_size[1] // 2
             char_img = char_img.resize(height=target_height)
             
             # Position character at bottom of screen
@@ -161,11 +161,14 @@ class VideoUtils:
         # Convert to RGB array for MoviePy
         img_rgb = Image.new('RGB', img.size, (0, 0, 0))
         img_rgb.paste(img, mask=img.split()[-1])  # Use alpha channel as mask
-        
-        return np.array(img_rgb)
+        rgba = np.array(img)          # (h, w, 4)  keep the alpha!
+        rgb   = rgba[:, :, :3]        # colour part
+        alpha = rgba[:, :, 3] / 255.0 # greyscale mask in 0‑1 range
+        return rgb, alpha
+
     
     @staticmethod
-    def create_styled_caption(text, total_duration, video_size, style='tiktok'):
+    def create_styled_caption(text, total_duration, video_size):
         """Create TikTok-style caption using PIL instead of TextClip to avoid ImageMagick issues"""
         display_text = text.replace('"', '').replace("'", "")
         
@@ -186,32 +189,28 @@ class VideoUtils:
 
         clips = []
         for i, phrase in enumerate(chunks):
-            # Create text image using PIL
-            if style == 'tiktok':
-                text_img = VideoUtils.create_text_image_with_stroke(
-                    phrase, 
-                    fontsize=54, 
-                    color='white', 
-                    stroke_color='black', 
-                    stroke_width=6,
-                    video_size=video_size
-                )
-            else:
-                text_img = VideoUtils.create_text_image_with_stroke(
-                    phrase, 
-                    fontsize=32, 
-                    color='white', 
-                    stroke_color='black', 
-                    stroke_width=2,
-                    video_size=video_size
-                )
-            
-            # Create video clip from image
-            def make_frame(t, img=text_img):
-                return img
-            
-            txt_clip = VideoClip(make_frame, duration=duration_per_chunk)
-            txt_clip = txt_clip.set_position(('center', 'center')).set_start(i * duration_per_chunk)
+            rgb, alpha = VideoUtils.create_text_image_with_stroke(
+            phrase,
+            fontsize = 54,
+            color = "white",
+            stroke_color = "black",
+            stroke_width = 6,
+            video_size = video_size
+            )
+
+          # MoviePy wants the mask as float 0‑1
+            if alpha.dtype != np.float32:
+                alpha = alpha.astype("float32") / 255.0
+
+            # ---------- turn them into MoviePy clips ----------
+            txt_clip = (
+                ImageClip(rgb, ismask=False)
+                    .set_mask(ImageClip(alpha, ismask=True))      # ← transparency!
+                    .set_duration(duration_per_chunk)
+                    .set_start(i * duration_per_chunk)
+                    .set_position("center")
+            )
+
             clips.append(txt_clip)
 
         return CompositeVideoClip(clips, size=video_size)
@@ -261,7 +260,7 @@ class VideoUtils:
         bg_color = ColorClip(size=video_size, color=(0, 0, 0), duration=duration)
         
         # Create title text using PIL
-        title_img = VideoUtils.create_text_image_with_stroke(
+        title_img,alpha = VideoUtils.create_text_image_with_stroke(
             title,
             fontsize=48,
             color='white',
@@ -308,7 +307,7 @@ class VideoUtils:
         debug_text = f"Character: {dialogue_info['character']}\nText: {dialogue_info['text'][:50]}..."
         
         # Create debug text using PIL
-        debug_img = VideoUtils.create_text_image_with_stroke(
+        debug_img,alpha = VideoUtils.create_text_image_with_stroke(
             debug_text,
             fontsize=16,
             color='red',

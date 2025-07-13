@@ -170,28 +170,7 @@ def create_news_video():
         except:
             pass
 
-def check_requirements():
-    """Check if all required files exist"""
-    required_files = [
-        'peter_clone.mp3',
-        'stewie_clone.mp3', 
-        'peter.png',
-        'stewie.png',
-        'bg.mp4'
-    ]
-    
-    missing_files = []
-    for file in required_files:
-        if not os.path.exists(file):
-            missing_files.append(file)
-    
-    if missing_files:
-        print("❌ Missing required files:")
-        for file in missing_files:
-            print(f"  - {file}")
-        return False
-    
-    return True
+
 
 if __name__ == "__main__":
     print("🎬 Family Guy News Video Generator")
