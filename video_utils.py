@@ -71,7 +71,7 @@ class VideoUtils:
             char_img = ImageClip(image_path).set_duration(duration)
             
             # Calculate size (character should be about 1/4 of video height)
-            target_height = video_size[1] // 2
+            target_height = video_size[1] // 3
             char_img = char_img.resize(height=target_height)
             
             # Position character at bottom of screen
